@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import json
 
 if __name__ == '__main__':
-    with open(b"C:\Users\YARONHA\Downloads\log2.json", "r") as read_file:
+    with open(b"C:/MobileRobots/MR/046213_Labs/log.json", "r") as read_file:
         log = json.load(read_file)
 
     t = range(1, len(log['cross_track_error']) + 1)

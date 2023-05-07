@@ -104,12 +104,14 @@ class Lab1(Node):
         print(f'Reference pose = (X = {x_ref}, Y = {y_ref})')
         print(f'Waypoint index = {self.waypoint_index}')
         print(f'Theta = {theta} , Theta_ref = {theta_ref}')
+        if self.waypoint_index == 30: #collect data early for ZN tuning
+            raise EndLap
 
         # log the accumulated error to screen and internally to be printed at the end of the run
         self.get_logger().info("Cross Track Error: " + str(cross_track_error))
         self.get_logger().info("Along Track Error: " + str(along_track_error))
-        self.cross_track_accumulated_error += abs(cross_track_error)
-        self.along_track_accumulated_error += abs(along_track_error)
+        self.cross_track_accumulated_error += (cross_track_error)
+        self.along_track_accumulated_error += (along_track_error) #removed the abs() from the errors
 
     def compute_angle_of_vector(self, vec):
         '''
@@ -180,6 +182,39 @@ class Lab1(Node):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Cross-track PID control
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        K_ct_p = 0
+        K_ct_d = 0
+        K_ct_i = 0
+        steering_angle_command = -(K_ct_p * self.current_cross_track_error +
+                                   K_ct_d * self.total_velocity * np.sin(self.theta_error) +
+                                   K_ct_i * self.cross_track_accumulated_error)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Along-track PID control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        K_at_p = 3.48
+        K_at_d = 0.6
+        K_at_i = 2.4
+        speed_command = -(K_at_p * self.current_along_track_error +
+                          K_at_d * self.total_velocity * np.cos(self.theta_error) +
+                          K_at_i * self.along_track_accumulated_error)
+
+        # # Limiting the speed commands
+        # speed_cut_off = 0.5
+        # if speed_command > speed_cut_off :
+        #     speed_command = speed_cut_off
+        # elif speed_command < -speed_cut_off :
+        #     speed_command = -speed_cut_off
+
+        print(f'PID_CONTROL: ThetaError = {self.theta_error}')
+        print(f'PID_CONTROL: SteeringCommand = {steering_angle_command} , SpeedCommand = {speed_command}')
+        print(f'occ_err = {self.along_track_accumulated_error}')
+        return np.array([steering_angle_command, speed_command])
+
+    def pid_unicycle_control(self, pose):
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Cross-track PID control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         K_ct_p = 1
         K_ct_d = 3
         K_ct_i = 0
@@ -199,22 +234,14 @@ class Lab1(Node):
 
         # Limiting the speed commands
         speed_cut_off = 0.5
-        if speed_command > speed_cut_off :
+        if speed_command > speed_cut_off:
             speed_command = speed_cut_off
-        elif speed_command < -speed_cut_off :
+        elif speed_command < -speed_cut_off:
             speed_command = -speed_cut_off
 
         print(f'PID_CONTROL: ThetaError = {self.theta_error}')
         print(f'PID_CONTROL: SteeringCommand = {steering_angle_command} , SpeedCommand = {speed_command}')
         return np.array([steering_angle_command, speed_command])
-
-    def pid_unicycle_control(self, pose):
-        #### YOUR CODE HERE ####
-        
-        
-        # return np.array([steering_angle, speed])
-        #### END OF YOUR CODE ####
-        raise NotImplementedError
     
     def pure_pursuit_control(self, pose):
         #### YOUR CODE HERE ####
