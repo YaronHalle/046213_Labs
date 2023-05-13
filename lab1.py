@@ -57,75 +57,97 @@ class Lab1(Node):
         self.timer # prevent unused variable warning
         
         self.pose = np.zeros(3)
-        self.total_velocity = 0.0
-        
+
         self.current_cross_track_error = 0
         self.current_along_track_error = 0
         self.cross_track_accumulated_error = 0
         self.along_track_accumulated_error = 0
         self.waypoint_index = 0
 
+        self.moved = False
+
+        # New code by students
         # Creating a dictionary log for later plotting the performance
         self.log = {}
         self.log['cross_track_error'] = []
         self.log['along_track_error'] = []
         self.log['steering_command'] = []
         self.log['speed_command'] = []
-        
-        self.moved = False
+        self.log['robot_x'] = []
+        self.log['robot_y'] = []
+        self.log['traj_x'] = []
+        self.log['traj_y'] = []
+
+        self.along_track_error_integral = 0
+        self.cross_track_error_integral = 0
+        self.along_track_error_derivative = 0
+        self.cross_track_error_derivative = 0
+        self.prev_along_track_error = 0
+        self.prev_cross_track_error = 0
+        self.dt = 0.5
+        self.theta_ref = 0
+        self.prev_pose = np.zeros(3)
+        self.velocity = 0
+        self.last_steering_command = 0
+        # End of New code by students
     
     def get_ref_pos(self):
         # get the next waypoint in the reference trajectory based on the current time
-        self.waypoint_index += 1
         waypoint = self.ref_traj[self.waypoint_index % len(self.ref_traj)]
+        self.waypoint_index += 1
         return waypoint
 
     def log_accumulated_error(self):
+        ref_pos = np.array(self.get_ref_pos())
         next_ref_pos = np.array(self.get_ref_pos())
-        prev_ref_pos = np.array(self.ref_traj[(self.waypoint_index - 1) % len(self.ref_traj)])
+        self.waypoint_index -= 1
         x = self.pose[0]
         y = self.pose[1]
         theta = self.pose[2]
         x_ref = next_ref_pos[0]
         y_ref = next_ref_pos[1]
 
-        # compute the cross track and along track error depending on the current pose and the next waypoint
-        relative_trajectory_vec = next_ref_pos - prev_ref_pos
-        theta_ref = self.compute_angle_of_vector(relative_trajectory_vec)
-        cross_track_error = -np.sin(theta_ref) * (x - x_ref) + np.cos(theta_ref) * (y - y_ref)
-        along_track_error =  np.cos(theta_ref) * (x - x_ref) + np.sin(theta_ref) * (y - y_ref)
+        # compute the trajectory vector between previous and next points for getting theta_ref
+        self.theta_ref = np.arctan2(next_ref_pos[1] - ref_pos[1], next_ref_pos[0] - ref_pos[0])
+
+        # compute the cross track and along track errors
+        cross_track_error = -np.sin(self.theta_ref) * (x - x_ref) + np.cos(self.theta_ref) * (y - y_ref)
+        along_track_error =  np.cos(self.theta_ref) * (x - x_ref) + np.sin(self.theta_ref) * (y - y_ref)
 
         self.current_cross_track_error = cross_track_error
         self.current_along_track_error = along_track_error
-        self.theta_error = (theta - theta_ref)
 
-        # DEBUG
-        print(f'Current pose   = (X = {x}, Y = {y})')
-        print(f'Reference pose = (X = {x_ref}, Y = {y_ref})')
-        print(f'Waypoint index = {self.waypoint_index}')
-        print(f'Theta = {theta} , Theta_ref = {theta_ref}')
-        if self.waypoint_index == 30: #collect data early for ZN tuning
-            raise EndLap
+        # update accumulators needed for controllers
+        self.along_track_error_integral += along_track_error
+        self.cross_track_error_integral += cross_track_error
+        if self.waypoint_index > 1:  # don't calculate derivatives on the first waypoint
+            # Computing along and cross track errors derivatives
+            self.along_track_error_derivative = \
+                (along_track_error - self.prev_along_track_error) / self.dt  # length of timestep
+            self.cross_track_error_derivative = \
+                (cross_track_error - self.prev_cross_track_error) / self.dt  # length of timestep
+
+            # Computing velocity by differentiating the current and previous poses
+            robot_translation = self.pose[0:2] - self.prev_pose[0:2]
+            self.velocity = np.linalg.norm(robot_translation) / self.dt
+
+        self.prev_along_track_error = along_track_error
+        self.prev_cross_track_error = cross_track_error
+        self.prev_pose = self.pose
+
+        #### DEBUG PRINTS ####
+        print(f'\nx = {x}, y = {y}, theta = {np.rad2deg(theta)}')
+        print(f'velocity = {self.velocity}')
+        print(f'x_ref = {x_ref}, y_ref = {y_ref}, theta_ref = {np.rad2deg(self.theta_ref)}')
+        print(f'at_der =  {self.along_track_error_derivative}, eat_int = {self.along_track_error_integral}')
+        print(f'ect_der =  {self.cross_track_error_derivative}, ect_int = {self.cross_track_error_integral}')
 
         # log the accumulated error to screen and internally to be printed at the end of the run
         self.get_logger().info("Cross Track Error: " + str(cross_track_error))
         self.get_logger().info("Along Track Error: " + str(along_track_error))
-        self.cross_track_accumulated_error += (cross_track_error)
-        self.along_track_accumulated_error += (along_track_error) #removed the abs() from the errors
+        self.cross_track_accumulated_error += abs(cross_track_error)
+        self.along_track_accumulated_error += abs(along_track_error)
 
-    def compute_angle_of_vector(self, vec):
-        '''
-        A utility function to compute the angle of a vector.
-        @param vec Vector from previous to next trajectory point
-        '''
-        vec_norm = np.linalg.norm(vec)
-        if vec_norm == 0:
-            print('Warning! in compute_angle_of_vector: division by zero')
-        vec = vec / vec_norm
-        if vec[1] > 0:
-            return np.arccos(vec[0])
-        else:  # vec[1] <= 0
-            return -np.arccos(vec[0])
 
     def odom_callback(self, msg):
         # get the current pose
@@ -134,16 +156,11 @@ class Lab1(Node):
         q = msg.pose.pose.orientation
         _, _, yaw = euler.quat2euler([q.w, q.x, q.y, q.z])
 
-        # get the current total linear velocity
-        vx = msg.twist.twist.linear.x
-        vy = msg.twist.twist.linear.y
-
         if not self.moved and (x < -1 and y > 3):
             self.moved = True
         elif self.moved and x > 0:
             raise EndLap
 
-        self.total_velocity = np.linalg.norm([vx, vy])
         self.pose = np.array([x, y, yaw])
         
     def timer_callback(self):
@@ -172,54 +189,68 @@ class Lab1(Node):
         cmd.drive.speed = u[1]
         self.cmd_pub.publish(cmd)
 
+        #### DEBUG PRINTS ####
+        print(f'steering_command = {u[0]}, speed_command = {u[1]}')
+
         # Update log
+        self.last_steering_command = u[0]
         self.log['cross_track_error'].append(self.current_cross_track_error)
         self.log['along_track_error'].append(self.current_along_track_error)
         self.log['steering_command'].append(u[0])
         self.log['speed_command'].append(u[1])
+        self.log['robot_x'].append(self.pose[0])
+        self.log['robot_y'].append(self.pose[1])
+        self.log['traj_x'].append(self.ref_traj[self.waypoint_index % len(self.ref_traj)][0])
+        self.log['traj_y'].append(self.ref_traj[self.waypoint_index % len(self.ref_traj)][1])
 
     def pid_control(self, pose):
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Cross-track PID control
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        K_ct_p = 0
-        K_ct_d = 0
-        K_ct_i = 0
-        steering_angle_command = -(K_ct_p * self.current_cross_track_error +
-                                   K_ct_d * self.total_velocity * np.sin(self.theta_error) +
-                                   K_ct_i * self.cross_track_accumulated_error)
+        theta_measured = pose[2]
+        wheelbase = 0.3302
+        theta_next = theta_measured + self.velocity / wheelbase * np.tan(self.last_steering_command) * self.dt
+        theta_error = theta_next - self.theta_ref
 
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Along-track PID control
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        K_at_p = 3.48
-        K_at_d = 0.6
-        K_at_i = 2.4
-        speed_command = -(K_at_p * self.current_along_track_error +
-                          K_at_d * self.total_velocity * np.cos(self.theta_error) +
-                          K_at_i * self.along_track_accumulated_error)
-
-        # # Limiting the speed commands
-        # speed_cut_off = 0.5
-        # if speed_command > speed_cut_off :
-        #     speed_command = speed_cut_off
-        # elif speed_command < -speed_cut_off :
-        #     speed_command = -speed_cut_off
-
-        print(f'PID_CONTROL: ThetaError = {self.theta_error}')
-        print(f'PID_CONTROL: SteeringCommand = {steering_angle_command} , SpeedCommand = {speed_command}')
-        print(f'occ_err = {self.along_track_accumulated_error}')
-        return np.array([steering_angle_command, speed_command])
-
-    def pid_unicycle_control(self, pose):
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Cross-track PID control
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         K_ct_p = 1
-        K_ct_d = 3
+        K_ct_d = 2
         K_ct_i = 0
-        steering_angle_command = -(K_ct_p * self.current_cross_track_error +
-                                   K_ct_d * self.total_velocity * np.sin(self.theta_error) +
+        steering_angle = -(K_ct_p * self.current_cross_track_error +
+                           K_ct_d * self.velocity * np.sin(theta_error) +
+                           K_ct_i * self.cross_track_accumulated_error)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Along-track PID control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        K_at_p = 5
+        K_at_d = 0
+        K_at_i = 0
+        speed = -(K_at_p * self.current_along_track_error +
+                          K_at_d * self.velocity * np.cos(theta_error) +
+                          K_at_i * self.along_track_accumulated_error)
+
+        # Limiting the speed commands
+        speed_cut_off = 0.5
+        if speed > speed_cut_off:
+            speed = speed_cut_off
+        elif speed < -speed_cut_off:
+            speed = -speed_cut_off
+
+        return np.array([steering_angle, speed])
+
+    def pid_unicycle_control(self, pose):
+        theta_measured = pose[2]
+        theta_next = theta_measured + self.last_steering_command * self.dt
+        theta_error = theta_next - self.theta_ref
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Cross-track PID control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        K_ct_p = 1
+        K_ct_d = 2
+        K_ct_i = 0
+        steering_angle = -(K_ct_p * self.current_cross_track_error +
+                                   K_ct_d * self.velocity * np.sin(theta_error) +
                                    K_ct_i * self.cross_track_accumulated_error)
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -228,21 +259,20 @@ class Lab1(Node):
         K_at_p = 5
         K_at_d = 0
         K_at_i = 0
-        speed_command = -(K_at_p * self.current_along_track_error +
-                          K_at_d * self.total_velocity * np.cos(self.theta_error) +
+        speed = -(K_at_p * self.current_along_track_error +
+                          K_at_d * self.velocity * np.cos(theta_error) +
                           K_at_i * self.along_track_accumulated_error)
 
         # Limiting the speed commands
         speed_cut_off = 0.5
-        if speed_command > speed_cut_off:
-            speed_command = speed_cut_off
-        elif speed_command < -speed_cut_off:
-            speed_command = -speed_cut_off
+        if speed > speed_cut_off:
+            speed = speed_cut_off
+        elif speed < -speed_cut_off:
+            speed = -speed_cut_off
 
-        print(f'PID_CONTROL: ThetaError = {self.theta_error}')
-        print(f'PID_CONTROL: SteeringCommand = {steering_angle_command} , SpeedCommand = {speed_command}')
-        return np.array([steering_angle_command, speed_command])
-    
+        return np.array([steering_angle, speed])
+        #### END OF YOUR CODE ####
+
     def pure_pursuit_control(self, pose):
         #### YOUR CODE HERE ####
         
@@ -296,6 +326,10 @@ def main(args=None):
         print("Along Track Error: " + str(lab1.along_track_accumulated_error))
         print("Lap Time: " + str(tock - tick))
 
+        # Logging the final accumulated errors
+        lab1.log['acc_cross_track_error'] = lab1.cross_track_accumulated_error
+        lab1.log['acc_along_track_error'] = lab1.along_track_accumulated_error
+        lab1.log['lap_time'] = tock - tick
         export_log_to_json(lab1.log)
 
     lab1.destroy_node()
