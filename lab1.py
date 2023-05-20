@@ -21,9 +21,10 @@ import gym
 import numpy as np
 from transforms3d import euler
 
+
 # this node should get the current pose from odom and get a reference trajectory from a yaml file
 # and publish ackermann drive commands to the car based on one of 4 controllers selected with a parameter
-# the controllers are PID, Pure Pursuit, iLQR, and an optimal controller 
+# the controllers are PID, Pure Pursuit, iLQR, and an optimal controller
 class Lab1(Node):
     def __init__(self, controller_type: str = 'pid'):
         super().__init__('lab1')
@@ -38,24 +39,24 @@ class Lab1(Node):
         # get the current pose
         self.get_logger().info("Subscribing to Odometry")
         self.odom_sub = self.create_subscription(Odometry, '/ego_racecar/odom', self.odom_callback, 10)
-        self.odom_sub # prevent unused variable warning
-        
+        self.odom_sub  # prevent unused variable warning
+
         self.get_logger().info("Publishing to Ackermann Drive")
         self.cmd_pub = self.create_publisher(AckermannDriveStamped, '/drive', 10)
-        self.cmd_pub # prevent unused variable warning
-        
+        self.cmd_pub  # prevent unused variable warning
+
         # get the reference trajectory
         self.get_logger().info("Loading Reference Trajectory")
         self.ref_traj = np.load(os.path.join(get_package_share_directory('f1tenth_gym_ros'),
-                                            'resource',
-                                            'ref_traj.npy'))
-        self.ref_traj # prevent unused variable warning
-        
+                                             'resource',
+                                             'ref_traj.npy'))
+        self.ref_traj  # prevent unused variable warning
+
         # create a timer to publish the control input every 20ms
         self.get_logger().info("Creating Timer")
         self.timer = self.create_timer(0.5, self.timer_callback)
-        self.timer # prevent unused variable warning
-        
+        self.timer  # prevent unused variable warning
+
         self.pose = np.zeros(3)
 
         self.current_cross_track_error = 0
@@ -90,11 +91,14 @@ class Lab1(Node):
         self.velocity = 0
         self.last_steering_command = 0
         # End of New code by students
-    
+
     def get_ref_pos(self):
         # get the next waypoint in the reference trajectory based on the current time
         waypoint = self.ref_traj[self.waypoint_index % len(self.ref_traj)]
         self.waypoint_index += 1
+
+        if self.controller == 'optimal':
+            self.waypoint_index += 1  # if we're using optimal control - go twice as fast
         return waypoint
 
     def log_accumulated_error(self):
@@ -112,7 +116,7 @@ class Lab1(Node):
 
         # compute the cross track and along track errors
         cross_track_error = -np.sin(self.theta_ref) * (x - x_ref) + np.cos(self.theta_ref) * (y - y_ref)
-        along_track_error =  np.cos(self.theta_ref) * (x - x_ref) + np.sin(self.theta_ref) * (y - y_ref)
+        along_track_error = np.cos(self.theta_ref) * (x - x_ref) + np.sin(self.theta_ref) * (y - y_ref)
 
         self.current_cross_track_error = cross_track_error
         self.current_along_track_error = along_track_error
@@ -135,19 +139,11 @@ class Lab1(Node):
         self.prev_cross_track_error = cross_track_error
         self.prev_pose = self.pose
 
-        #### DEBUG PRINTS ####
-        print(f'\nx = {x}, y = {y}, theta = {np.rad2deg(theta)}')
-        print(f'velocity = {self.velocity}')
-        print(f'x_ref = {x_ref}, y_ref = {y_ref}, theta_ref = {np.rad2deg(self.theta_ref)}')
-        print(f'at_der =  {self.along_track_error_derivative}, eat_int = {self.along_track_error_integral}')
-        print(f'ect_der =  {self.cross_track_error_derivative}, ect_int = {self.cross_track_error_integral}')
-
         # log the accumulated error to screen and internally to be printed at the end of the run
         self.get_logger().info("Cross Track Error: " + str(cross_track_error))
         self.get_logger().info("Along Track Error: " + str(along_track_error))
         self.cross_track_accumulated_error += abs(cross_track_error)
         self.along_track_accumulated_error += abs(along_track_error)
-
 
     def odom_callback(self, msg):
         # get the current pose
@@ -162,10 +158,10 @@ class Lab1(Node):
             raise EndLap
 
         self.pose = np.array([x, y, yaw])
-        
+
     def timer_callback(self):
         self.log_accumulated_error()
-        
+
         # compute the control input
         if self.controller == "pid_unicycle":
             u = self.pid_unicycle_control(self.pose)
@@ -180,7 +176,7 @@ class Lab1(Node):
         else:
             self.get_logger().info("Unknown controller")
             return
-        
+
         # publish the control input
         cmd = AckermannDriveStamped()
         cmd.header.stamp = self.get_clock().now().to_msg()
@@ -226,8 +222,8 @@ class Lab1(Node):
         K_at_d = 0
         K_at_i = 0
         speed = -(K_at_p * self.current_along_track_error +
-                          K_at_d * self.velocity * np.cos(theta_error) +
-                          K_at_i * self.along_track_accumulated_error)
+                  K_at_d * self.velocity * np.cos(theta_error) +
+                  K_at_i * self.along_track_accumulated_error)
 
         # Limiting the speed commands
         speed_cut_off = 0.5
@@ -250,8 +246,8 @@ class Lab1(Node):
         K_ct_d = 2
         K_ct_i = 0
         steering_angle = -(K_ct_p * self.current_cross_track_error +
-                                   K_ct_d * self.velocity * np.sin(theta_error) +
-                                   K_ct_i * self.cross_track_accumulated_error)
+                           K_ct_d * self.velocity * np.sin(theta_error) +
+                           K_ct_i * self.cross_track_accumulated_error)
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Along-track PID control
@@ -260,8 +256,8 @@ class Lab1(Node):
         K_at_d = 0
         K_at_i = 0
         speed = -(K_at_p * self.current_along_track_error +
-                          K_at_d * self.velocity * np.cos(theta_error) +
-                          K_at_i * self.along_track_accumulated_error)
+                  K_at_d * self.velocity * np.cos(theta_error) +
+                  K_at_i * self.along_track_accumulated_error)
 
         # Limiting the speed commands
         speed_cut_off = 0.5
@@ -275,36 +271,95 @@ class Lab1(Node):
 
     def pure_pursuit_control(self, pose):
         #### YOUR CODE HERE ####
-        
-        
-        # return np.array([steering_angle, speed])
+
+        speed = 0.5  # drive at max speed at all time
+        lookahead = 1  # adjustable hyperparameter
+        d = 0.3302  # wheelbase as defined in .xacro file
+
+        lookahead_waypoint = self.ref_traj[(self.waypoint_index + lookahead) % len(self.ref_traj)]
+        x_ref = lookahead_waypoint[0]
+        y_ref = lookahead_waypoint[1]
+
+        x = pose[0]
+        y = pose[1]
+        heading_angle = pose[2]
+        waypoint_angle = np.arctan2(y_ref - y, x_ref - x)
+
+        alpha = (waypoint_angle - heading_angle)
+        L = np.sqrt((x - x_ref) ** 2 + (y - y_ref) ** 2)
+
+        steering_angle = np.arctan((2 * d * np.sin(alpha)) / L)
+
+        #### DEBUG PRINTS ####
+        print(f'\nx = {x}, y = {y}, heading = {heading_angle}')
+        print(f'x_ref = {x_ref}, y_ref = {y_ref}, theta_ref = {np.rad2deg(waypoint_angle)}')
+        print(f'alpha = {np.rad2deg(alpha)}, L = {L}')
+        print(f'steering angle = {np.rad2deg(steering_angle)}')
+
+        #### DEBUG STOP ####
+        # if self.waypoint_index == 50:
+        #     raise EndLap
+
+        return np.array([steering_angle, speed])
         #### END OF YOUR CODE ####
-        raise NotImplementedError
-        
+
     def ilqr_control(self, pose):
         #### YOUR CODE HERE ####
-        
-        
+
         # return np.array([steering_angle, speed])
         #### END OF YOUR CODE ####
         raise NotImplementedError
-        
+
     def optimal_control(self, pose):
         #### YOUR CODE HERE ####
-        
-        
-        # return np.array([steering_angle, speed])
+        theta_measured = pose[2]
+        theta_next = theta_measured + self.last_steering_command * self.dt
+        theta_error = theta_next - self.theta_ref
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Along-track PID control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        K_at_p = 1.75
+        K_at_d = 0.4
+        K_at_i = 1.25
+        speed = -(K_at_p * self.current_along_track_error +
+                  K_at_d * self.velocity * np.cos(theta_error) +
+                  K_at_i * self.along_track_error_integral)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Pure Pursuit control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        lookahead = 4  # adjustable hyperparameter
+        d = 0.3302  # wheelbase as defined in .xacro file
+
+        lookahead_waypoint = self.ref_traj[(self.waypoint_index + lookahead) % len(self.ref_traj)]
+        x_ref = lookahead_waypoint[0]
+        y_ref = lookahead_waypoint[1]
+
+        x = pose[0]
+        y = pose[1]
+        heading_angle = pose[2]
+        waypoint_angle = np.arctan2(y_ref - y, x_ref - x)
+
+        alpha = (waypoint_angle - heading_angle)
+        L = np.sqrt((x - x_ref) ** 2 + (y - y_ref) ** 2)
+
+        steering_angle = np.arctan((2 * d * np.sin(alpha)) / L)
+
+        return np.array([steering_angle, speed])
         #### END OF YOUR CODE ####
         raise NotImplementedError
-        
+
 
 class EndLap(Exception):
     # this exception is raised when the car crosses the finish line
     pass
 
+
 def export_log_to_json(log):
     with open("log.json", "w") as write_file:
         json.dump(log, write_file)
+
 
 def main(args=None):
     rclpy.init()
@@ -334,8 +389,8 @@ def main(args=None):
 
     lab1.destroy_node()
     rclpy.shutdown()
-    
-    
+
+
 if __name__ == '__main__':
     controller_type = sys.argv[1]
     main(controller_type)
