@@ -1,0 +1,2804 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass heb-article
+\begin_preamble
+\usepackage{culmus}
+
+% Convert the Lyx colors into more pleasent colors:
+\usepackage{xcolor}
+\definecolor{blue}{RGB}{14,107,217}
+\definecolor{green}{RGB}{0,158,40}
+\definecolor{red}{RGB}{235,16,16}
+\definecolor{brown}{RGB}{164,66,0}
+\definecolor{orange}{RGB}{231,135,26}
+\definecolor{purple}{RGB}{94,53,177}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language hebrew
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "David"
+\font_sans "default" "David"
+\font_typewriter "default" "David"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts true
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing onehalf
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1cm
+\topmargin 2cm
+\rightmargin 1cm
+\bottommargin 3cm
+\headheight 0cm
+\headsep 0cm
+\footskip 2cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation 0bp
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+רובוטים ניידים| רטוב 
+\numeric on
+1
+\end_layout
+
+\begin_layout Author
+להב ברק , ת"ז: 
+\numeric on
+312148307
+\family roman
+\series medium
+\shape up
+\size large
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ | ירון הלה ת''ז: 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+066077033
+\end_layout
+
+\begin_layout Section*
+שאלה
+\family roman
+\series bold
+\shape up
+\size larger
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+1
+\end_layout
+
+\begin_layout Standard
+חישוב השגיאה מתבצע באופן דומה לחישוב שנראה בתרגול:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+e=\begin{pmatrix}e_{at}\\
+e_{ct}
+\end{pmatrix}=\begin{pmatrix}\cos\theta_{ref} & \sin\theta_{ref}\\
+-\sin\theta_{ref} & \cos\theta_{ref}
+\end{pmatrix}\begin{pmatrix}x-x_{ref}\\
+y-y_{ref}
+\end{pmatrix}=\begin{pmatrix}\cos\theta_{ref}\left(x-x_{ref}\right)+\sin\theta_{ref}\left(y-y_{ref}\right)\\
+\cos\theta_{ref}\left(y-y_{ref}\right)-\sin\theta_{ref}\left(x-x_{ref}\right)
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ערכי 
+\begin_inset Formula $x_{ref},y_{ref},x,y$
+\end_inset
+
+ נתונים, לכן נותר רק לחשב את 
+\begin_inset Formula $\theta_{ref}$
+\end_inset
+
+ - זה מבוצע ע
+\begin_inset Quotes erd
+\end_inset
+
+י חישוב הזווית של הוקטור המחבר בין הנקודה הבאה לנקודה הנוכחית.
+\end_layout
+
+\begin_layout Standard
+פונקציית חישוב השגיאה מחשבת בנוסף גם את הנגזרת לשגיאה ואת אינטגרל השגיאה,
+ ושומרת אותם בשדות חדשים מתאימים, כך שניתן יהיה להיעזר בהם בפונקציות הבקרים
+ )בפרט
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+\lang english
+PID
+\lang hebrew
+(
+\end_layout
+
+\begin_layout Standard
+בנוסף חישבנו מהירות רגעית ע
+\begin_inset Quotes erd
+\end_inset
+
+י גזירה בעזרת הפרשים אחוריים של המיקום של הרובוט.
+\end_layout
+
+\begin_layout Section*
+שאלה
+\family roman
+\series bold
+\shape up
+\size larger
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+2
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+סעיף
+\family roman
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+1
+\end_layout
+
+\begin_layout Standard
+מודל חד אופן:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+u=\begin{pmatrix}v\\
+\eta
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\dot{\zeta}=\begin{pmatrix}\dot{x}\\
+\dot{y}\\
+\dot{\theta}
+\end{pmatrix}=\begin{pmatrix}v\cos\theta\\
+v\sin\theta\\
+\eta
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כדי לחשב בקר 
+\begin_inset Formula $PD$
+\end_inset
+
+ נגזור את וקטור השגיאה ונקבל:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\dot{e}=\begin{pmatrix}\dot{x}\cos\theta_{ref}+\dot{y}\sin\theta_{ref}\\
+\dot{y}\cos\theta_{ref}-\dot{x}\sin\theta_{ref}
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+נציב את המודל, ונקבל
+\begin_inset Formula 
+\[
+\dot{e}=\begin{pmatrix}v\cos\theta\cos\theta_{ref}+v\sin\theta\sin\theta_{ref}\\
+v\sin\theta\cos\theta_{ref}-v\cos\theta\sin\theta_{ref}
+\end{pmatrix}=\begin{pmatrix}v\cos\left(\theta-\theta_{ref}\right)\\
+v\sin\left(\theta-\theta_{ref}\right)
+\end{pmatrix}=\begin{pmatrix}v\cos e_{\theta}\\
+v\sin e_{\theta}
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+נרצה ששגיאת 
+\begin_inset Formula $e_{at}$
+\end_inset
+
+ תבקר את המהירות, ושגיאת 
+\begin_inset Formula $e_{ct}$
+\end_inset
+
+ תבקר את הזווית, לכן הבקר שקיבלנו:
+\begin_inset Formula 
+\[
+u=-\begin{pmatrix}K_{p,at}e_{at}+K_{d,at}v\cos e_{\theta}+K_{i,at}\intop e_{at}\\
+K_{p,ct}e_{ct}+K_{d,ct}v\sin e_{\theta}+K_{i,ct}\intop e_{ct}
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+מאחר וקיימת בעיה לחרוג ממהירות בסימולציה, הגבלנו מלאכותית את המהירות - מה
+ שגרם לניוון אפקטיבי של בקר 
+\begin_inset Formula $e_{at}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+בעקבות כך השתמשנו בערך 
+\begin_inset Formula $K_{p}$
+\end_inset
+
+ גבוה, כדי לזרוק את המהירות למקסימום כמה שיותר מהר - אפקטיבית - יצרנו בקר
+ 
+\begin_inset Formula $bang\,bang$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+סעיף
+\family roman
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+2
+\end_layout
+
+\begin_layout Standard
+מודל אקרמן:
+\begin_inset Formula 
+\[
+u=\begin{pmatrix}v\\
+\delta
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\dot{\zeta}=\begin{pmatrix}\dot{x}\\
+\dot{y}\\
+\dot{\theta}
+\end{pmatrix}=\begin{pmatrix}v\cos\theta\\
+v\sin\theta\\
+\frac{v}{d}\tan\left(\delta\right)
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+נציב למטריצת נגזרת השגיאה ונקבל:
+\begin_inset Formula 
+\[
+\dot{e}=\begin{pmatrix}v\cos\theta\cos\theta_{ref}+v\sin\theta\sin\theta_{ref}\\
+v\sin\theta\cos\theta_{ref}-v\cos\theta\sin\theta_{ref}
+\end{pmatrix}=\begin{pmatrix}v\cos\left(\theta-\theta_{ref}\right)\\
+v\sin\left(\theta-\theta_{ref}\right)
+\end{pmatrix}=\begin{pmatrix}v\cos e_{\theta}\\
+v\sin e_{\theta}
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+לכן באופן דומה לסעיף
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+1
+\numeric off
+ נרצה ששגיאת 
+\begin_inset Formula $e_{at}$
+\end_inset
+
+ תבקר את המהירות, ושגיאת 
+\begin_inset Formula $e_{ct}$
+\end_inset
+
+ תבקר את הזווית, לכן הבקר שקיבלנו:
+\begin_inset Formula 
+\[
+u=-\begin{pmatrix}K_{p,at}e_{at}+K_{d,at}v\cos e_{\theta}+K_{i,at}\intop e_{at}\\
+K_{p,ct}e_{ct}+K_{d,ct}v\sin e_{\theta}+K_{i,ct}\intop e_{ct}
+\end{pmatrix}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כלומר, הבקר שקיבלנו זהה, מאחר והמודלים זהים עד כדי 
+\begin_inset Formula $\dot{\theta}$
+\end_inset
+
+, אבל משתנה המצב הזה לא מופיע ישירות בנוסחאות השגיאה.
+\end_layout
+
+\begin_layout Standard
+גם כאן הגבלנו מלאכותית את המהירות - מה שגרם לניוון של בקר 
+\begin_inset Formula $e_{at}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+תוצאות הבקר שקיבלנו:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename PID.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename PID_track.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+\begin_inset Newpage newpage
+\end_inset
+
+שאלה
+\family roman
+\series bold
+\shape up
+\size larger
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+3
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+סעיף
+\family roman
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+1
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+used Lookahead 5 as starting reference point, then tested in descending
+ order from 10 to 1 to optimize and observe changes in behavior:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="11" columns="5">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Lookahead Distance
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Lap Time [sec]
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Total 
+\begin_inset Formula $e_{at}\left[m\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Total 
+\begin_inset Formula $e_{ct}\left[m\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Notes
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+10
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+N/A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+N/A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+N/A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+crashed into 1st corner
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+N/A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+N/A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+N/A
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+crashed into 2nd corner
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+123.6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+191.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+13.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+grazed 1st corner, still completed lap
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+124.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+158.4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+10.6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+best lookahead to optimize lap time
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+124.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+125.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+8.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+125.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+92.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+6.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+125.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+52.4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+5.4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+126.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+20.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+4.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\series bold
+\lang english
+best lookahead to optimize total errors
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+126.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+67.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+5.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+low lookahead started harming performance
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+127.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+122.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+7.2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+low lookahead greatly harming performance
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+We can see that starting from lookahead 7 - decreasing lookahead harms lap
+ time linearly (extra 0.5 sec per lookahead decrease), but improves total
+ errors greatly, until we reach lookahead 2 - which is too low and causes
+ large overshoots.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Therefore, if we're trying to optimize for lowest accumulated error - the
+ best choice will be lookahead 3, which provides the best tracking
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+However, if we're trying to optimize for fastest lap time - the best choice
+ seems to be 8, but due to close proximity to the corner, safety margins
+ considerations will lead us to pick 7.
+\end_layout
+
+\begin_layout Section*
+
+\series bold
+סעיף
+\family roman
+\shape up
+\size larger
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+2
+\end_layout
+
+\begin_layout Standard
+בסעיף זה מומש בקר RQLi.
+ נזכיר שוקטור משתנה המצב X ופקודות הבקרה U הן מהצורה:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X=\left(\begin{array}{c}
+\text{x}\\
+y\\
+\theta
+\end{array}\right),U=\left(\begin{array}{c}
+v\\
+\delta
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כאשר וקטור X מורכב מהאיברים הבאים )ע''פ הסדר(: מקום x, מקום y וכיוון הרכב
+ במערכת צירים אינרציאלית.
+ וקטור U מכיל )ע''פ הסדר( את מהירות הגלגלים ואת זווית הפנייה של הגלגלים
+ )במודל אקרמן( במערכת הצירים של הרכב.
+\end_layout
+
+\begin_layout Standard
+נזכיר שהפונקציה הלא-ליניארית 
+\begin_inset Formula $f\left(X_{t},U_{t}\right)$
+\end_inset
+
+המתארת את מודל אקרמן היא מהצורה:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{array}{c}
+f_{x}\left(X_{t},U_{t}\right)=vcos\theta\\
+f_{y}\left(X_{t},U_{t}\right)=vsin\theta\\
+f_{\theta}\left(X_{t},U_{t}\right)=\frac{v}{d}tg\delta
+\end{array}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כאשר 
+\begin_inset Formula $d$
+\end_inset
+
+ הינו הפרמטר הגיאומטרי של ה-esableehw של הרכב )נלקח מתוך הקבצים של ה-SOR(.
+\end_layout
+
+\begin_layout Standard
+לטובת אופטימיזציית המסלול נגדיר פונקציית עלות 
+\begin_inset Formula $C_{t}\left(X_{t},U_{t}\right)$
+\end_inset
+
+מהצורה:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{t}\left(X_{t},U_{t}\right)=\left(X_{t}-X_{t}^{REF}\right)^{T}Q_{t}\left(X_{t}-X_{t}^{REF}\right)+\left(U_{t}-U_{t}^{REF}\right)^{T}R_{t}\left(U_{t}-U_{t}^{REF}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כאשר מטריצות העלות Q ו-R הנן מטריצות ריבועיות ואלכסוניות, קבועות בזמן, המוגדרות
+ באופן הבא.
+ בחירת הערכים לאחר סבבי אופטימיזציה רבים אשר הניבו את התוצאות המיטביות מבחינת
+ טיב העקיבה וזמן ההתכנסות של הבקר:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+Q=\left(\begin{array}{ccc}
+10 & 0 & 0\\
+0 & 10 & 0\\
+0 & 0 & 1
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+R=\left(\begin{array}{cc}
+0 & 0\\
+0 & 1
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+להלן משוואות העדכון של פתרון בעיית התכנון הדינאמי כפי שהוצג בתרגול בכיתה
+ עבור פונקציית העלות 
+\begin_inset Formula $C_{t}\left(X_{t},U_{t}\right)$
+\end_inset
+
+ שהוצגה לעיל )לאחר חישוב טור טיילור מסדר שני של פונקציית העלות, גזירת פונקציית
+ העלות והשוואתה לאפס(:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+d_{t}\triangleq-\left(2R_{t}^{T}+B_{t}^{T}S_{t+1}B_{t}\right)^{-1}\left(2U_{t}^{T}R_{t}-2U^{REF^{T}}R_{t}+B_{t}^{T}s_{t+1}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+K_{t}\triangleq-\left(2R_{t}^{T}+B_{t}^{T}S_{t+1}B_{t}\right)^{-1}B_{t}^{T}S_{t+1}A
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כאשר 
+\begin_inset Formula $s_{t+1}$
+\end_inset
+
+ מייצג את סכימת אופק הזמן קדימה של הנגזרת הראשונה של פונקציית העלות לפי
+ 
+\begin_inset Formula $X$
+\end_inset
+
+ :
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+s_{t+1}\triangleq\frac{\partial V}{\partial X}\left(t+1\right)=\sum_{i=t+1}^{N}2\left(X_{i}^{T}-X_{i}^{REF^{T}}\right)Q_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+ולעומת זאת האיבר 
+\begin_inset Formula $S_{t+1}$
+\end_inset
+
+ מייצג את סכימת אופק הזמן קדימה של הנגזרת השנייה של פונקציית העלות לפי 
+\begin_inset Formula $X$
+\end_inset
+
+ :
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+S_{t+1}\triangleq\frac{\partial^{2}V}{\partial^{2}X}\left(t+1\right)=\sum_{i=t+1}^{N}2Q_{i}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+במימוש, נעשה שימוש בפועל במטריצה זו בתוספת איבר רגולריזציה מהצורה 
+\begin_inset Formula $\rho I$
+\end_inset
+
+ בכדי לשפר את היציבות הנומרית.
+ ערכי ה-
+\begin_inset Formula $\rho$
+\end_inset
+
+ שנבחרו במימוש בפועל מתוארים בהמשך.
+\end_layout
+
+\begin_layout Standard
+המטריצה 
+\begin_inset Formula $A_{\text{t}}$
+\end_inset
+
+מייצגת את נגזרת הדינמיקה הלא-ליניארית של המערכת ע
+\begin_inset Quotes erd
+\end_inset
+
+פ משתני המצב, כלומר:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+A_{\text{t}}=\frac{\partial f}{\partial X}=\left(\begin{array}{ccc}
+0 & 0 & -vsin\theta\\
+0 & 0 & vcos\theta\\
+0 & 0 & 0
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+המטריצה 
+\begin_inset Formula $B_{\text{t}}$
+\end_inset
+
+מייצגת את נגזרת הדינמיקה הלא-ליניארית של המערכת ע
+\begin_inset Quotes erd
+\end_inset
+
+פ פקודות הבקרה, כלומר:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+B_{\text{t}}=\frac{\partial f}{\partial U}=\left(\begin{array}{cc}
+cos\theta & 0\\
+sin\theta & 0\\
+\frac{tg\delta}{d} & \frac{v}{dcos^{2}\left(\delta\right)}
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+האיברים 
+\begin_inset Formula $d_{t},K_{t}$
+\end_inset
+
+ מאפשרים לנו לחשב את 
+\begin_inset Formula $\delta U$
+\end_inset
+
+ המייצג את השינוי הנדרש ביחס לפקודות הבקרה 
+\begin_inset Formula $U$
+\end_inset
+
+ באיטרציה הנוכחית בבואנו לחשב את האיטרציה הבאה של הבקר.
+ צורת החישוב בפתרון לאחור )ssaP sdrawkcaB( הינו:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\delta U_{t}^{*}=K_{t}\delta X_{t}+\alpha d_{t}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+הפרמטר 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ אמור להיות 
+\numeric on
+1
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ע
+\begin_inset Quotes erd
+\end_inset
+
+פ הפיתוח התיאורטי.
+ מאחר והפתרון הנ''ל הינו קירוב ליניארי בלבד, הניסיונות האמפיריים שלנו הוכיחו
+ כי בחירת 
+\begin_inset Formula $\alpha=1$
+\end_inset
+
+ גורם לצעדי תיקון אגרסיביים מדי שלא מאפשרים התכנסות נאותה של הבקר.
+ במקום זאת, נבחרו ערכי 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ קטנים יותר ומשתנים כתלות בטיב ההתכנסות בדומה לרעיון ה-hcraeS eniL באופטימיזציית
+ tnecseD tneidarG.
+ הערכים עצמם והלוגיקה מתוארת בהמשך.
+\end_layout
+
+\begin_layout Standard
+לאחר חישוב 
+\begin_inset Formula $\delta U_{t}^{*}$
+\end_inset
+
+ נוכל לחשב את הצמד 
+\begin_inset Formula $\left\{ X^{\text{i}},U^{i}\right\} $
+\end_inset
+
+ של האיטרציה הבאה
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+)i+
+\numeric on
+1
+\numeric off
+(, ע''פ הנוסחאות שהוצגו בתרגול:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\begin{array}{c}
+U_{\text{t}}^{i+1}=U_{\text{t}}^{i}+K_{t}\left(X_{t}^{i+1}-X_{t}^{i}\right)+\alpha d_{t}\\
+X_{t+1}^{i+1}=X_{t}^{i+1}+dt\cdot f\left(X_{t}^{i+1},U_{\text{t}}^{i+1}\right)
+\end{array}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כך נוכל לחשב את המסלול באיטרציה הבאה במעבר ה-ssaP drawroF.
+\end_layout
+
+\begin_layout Standard
+בקר ה-RQLi זקוק לקלט של ''מסלול'' הרפרנס אליו נרצה להתכנס - מוגדר כצמד 
+\begin_inset Formula $\left\{ X^{REF},U^{REF}\right\} $
+\end_inset
+
+ וכן מסלול ''ניחוש'' - 
+\begin_inset Formula $\left\{ X^{INIT},U^{INIT}\right\} $
+\end_inset
+
+ - איתו נדרש לאתחל את האלגוריתם, בתקווה שהאלגוריתם יתכנס ממנו אל פתרון אופטימאלי
+ הקרוב דיו אל פתרון הרפרנס.
+\end_layout
+
+\begin_layout Standard
+מסלול הרפרנס 
+\begin_inset Formula $\left\{ X^{REF},U^{REF}\right\} $
+\end_inset
+
+ חושב בקלות בעזרת נוסחאות ה-ledoM talF laitnereffiD של דינמיקת רכב אקרמן
+ ע
+\begin_inset Quotes erd
+\end_inset
+
+פ הנוסחאות שהוצגו בתרגולים:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+X(t)=\left(\begin{array}{c}
+x(t)\\
+y(t)\\
+\theta(t)
+\end{array}\right)=\left(\begin{array}{c}
+x(t)\\
+y(t)\\
+Atan2\left(\dot{y}(t),\dot{x}(t)\right)
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+U(t)=\left(\begin{array}{c}
+v(t)\\
+\delta(t)
+\end{array}\right)=\left(\begin{array}{c}
+\frac{\dot{x}(t)}{cos\left[Atan2\left(\dot{y}(t),\dot{x}(t)\right)\right]}\\
+tan^{-1}(\frac{d\dot{\theta}(t)}{v(t)})
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+חישוב זה מומש בפונקצייה בשם U_dna_X_talf_ffid_teg המקבלת כקלט את מסלול הרפרנס
+ שסופק בקובץ ypn.jart_fer.
+ נשים לב שהמשוואות התיאורטיות הללו אינן לוקחות בחשבון את מגבלת המהירות המרבית
+ של הרכב )
+\numeric on
+0.5
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ מטר לשנייה( ועל כן ברור שמסלול הרפרנס שיופק הינו אופטימי מדי ולא פיזיבלי
+ הלכה למעשה בבקר שירוץ בסימולציית ה-SOR.
+ עם זאת, זה מסלול רפרנס לגיטימי לשאוף אליו כחלק מהאופטימיזציה.
+\end_layout
+
+\begin_layout Standard
+לעומת זאת, חישוב מסלול ''הניחוש'' הראשוני הנו מאתגר ולא טריוויאלי.
+ מצד אחד נרצה מסלול שקל להפיקו ומצד שני לא יהיה רחוק מדי ממסלול הרפרנס האידיאלי
+ כדי שאכן הבקר יצליח להתכנס אליו.
+ לטובת כך, הוקלט מסלול - הצמד 
+\begin_inset Formula $\left\{ X,U\right\} $
+\end_inset
+
+- עבור בקר ה-tiusruP eruP.
+ לאחר מכן בוצעה הרצה של סקריפט enilffO שאיננו חלק מהגשת התרגיל, בו בקר ה-RQLi
+ רץ באתחול של מסלול בקר ה-tiusruP eruP בשאיפה להתכנס למסלול הרפרנס 
+\begin_inset Formula $\left\{ X^{REF},U^{REF}\right\} $
+\end_inset
+
+.
+ מסלול זה חושב על-פני הקפה מלאה ומאחר והוא נדרש לבנייה רק פעם אחת, הריצה
+ בוצעה ללא מגבלת זמן תוך שימוש בהיפר-פרמטרים ''נדיבים'' בכדי לאפשר לאלגוריתם
+ להתכנס בצורה טובה לפתרון מסלול ''איכותי''.
+ לאחר מספרי אלפי ריצות התקבל פתרון שאכן מתחשב במגבלות המהירות של הרכב והוא
+ מהווה ''מסלול'' ניחוש איכותי להתחיל ממנו בכל נקודת זמן בו נחפוץ.
+ המסלול נשמר בשני הקבצים הבאים: ypn.laitini_u ,ypn.laitini_x.
+ יש לטעון קבצים אלו ל-rekcoD לתיקיית ecruoser )לאותה תיקייה בה נמצא קובץ
+ המסלול ypn.jart_fer(.
+\end_layout
+
+\begin_layout Standard
+הדיאגרמות הבאות מציגות את מסלול הניחוש 
+\begin_inset Formula $\left\{ X^{INIT},U^{INIT}\right\} $
+\end_inset
+
+ שהתקבל ובו הבקר ישתמש בזמן אמת:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename ilqr_x_init.png
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כפי שניתן לראות התקבלה התכנסות טובה מאוד של הבקר )מסלול הרובוט הצפוי באדום(
+ אל מסלול הרפרנס שהופק ע''י מודל האקרמן ע''י ה- ledoM talF laitnereffiD
+ )קו ירוק(.
+\end_layout
+
+\begin_layout Standard
+נקודות ודילמות מרכזיות באופן המימוש של הבקר:
+\end_layout
+
+\begin_layout Standard
+
+\numeric on
+1
+\numeric off
+.
+
+\series bold
+ 
+\series default
+\bar under
+אופק הבקרה
+\end_layout
+
+\begin_layout Standard
+כזכור תדר הסימולציה הינו חצי שנייה.
+ כלומר, הבקר חייב לסיים את חישוביו תוך פחות מחצי שנייה.
+ נכתבה סביבת enilffO בה פותח הקוד וכן נעשו ניסיונות רבים )מאוד( למציאת ההיפר-הפר
+מטרים המיטביים שיאפשרו הן התכנסות של המסלולים והן יעמדו מבחינת זמן המחזור
+ של מחצית השנייה של הסימולציה.
+ בכדי לעמוד באילוץ קשה זה, נמצא כי בזמן אמת של הריצה, לא ניתן לתכנן מסלול
+ איכותי ליותר מ-
+\numeric on
+5
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+נקודות קדימה.
+ כלומר, בכל נקודת זמן, הבקר טוען ממסלול הרפרנס 
+\begin_inset Formula $\left\{ X^{REF},U^{REF}\right\} $
+\end_inset
+
+וממסלול הניחוש 
+\begin_inset Formula $\left\{ X^{INIT},U^{INIT}\right\} $
+\end_inset
+
+ את
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+5
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+איברי המסלול מהזמן הנוכחי וקדימה.
+ המצב המדוד של משתני המצב 
+\begin_inset Formula $X$
+\end_inset
+
+ בזמן המחזור הנוכחי משמש כאילוץ לאיבר הראשון של 
+\begin_inset Formula $X^{INIT}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\numeric on
+2
+\numeric off
+.
+ 
+\bar under
+עדכון היפר-פרמטרים מאיטרציה לאיטרציה
+\end_layout
+
+\begin_layout Standard
+מומשה לוגיקה הבוחנת את השינוי בפונקציית העלות מאיטרציה לאיטרציה ומעדכנת
+ את ההיפר-פרמטרים הבאים של האלגוריתם: 
+\begin_inset Formula $\rho$
+\end_inset
+
+ השולט בתוספת הרגולריזציה לאיבר 
+\begin_inset Formula $S_{t+1}$
+\end_inset
+
+ וכן הפרמטר 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ השולט בגודל צעד התיקון בין האיטרציות המכפיל את האיבר
+\begin_inset Formula $d_{\text{t}}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+הערך
+\begin_inset Formula $\rho$
+\end_inset
+
+ נבחר להיות
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+10
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ אשר פוחת באופן מעריכי במידה וחל שיפור בערך פונקציית העלות.
+ הפרמטר
+\begin_inset Formula $\alpha$
+\end_inset
+
+ נבחר לערך ראשוני של 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+0.2
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\numeric off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+וגם הוא מעודכן ע''פ השינוי בפונקציית העלות.
+ התכנסות הוגדרה כאשר השיפור היחסי של תוצאת ערך העלות החדש אינו טוב מ-
+\begin_inset Formula $10^{-6}$
+\end_inset
+
+ביחס לערך העלות מהאיטרציה הקודמת.
+\end_layout
+
+\begin_layout Standard
+כוונון כל הפרמטרים הנ''ל בוצע בסביבת enilffO שפותחה המאפשרת ריצה נוחה וקלה
+ לדיבוג של הקוד.
+\end_layout
+
+\begin_layout Standard
+
+\bar under
+תוצאות ריצת הבקר בסימולציה
+\end_layout
+
+\begin_layout Standard
+הבקר שפותח הורץ כחלק מסימולציית ה-SOR.
+ להלן דיאגרמת עקיבת המסלול שהתקבלה בריצת זמן אמת:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename iLQR_performance2.png
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כפי שניתן לראות בחלק מהסלול מתקיימת עקיבה טובה בעוד בחלקים אחרים ניכר כי
+ מסלול הרובוט אינו בעקיבה מספיק טובה.
+ ללא ספק ניכר כי נדרשות איטרציות נוספות לבקר בכדי להתכנס )עם זאת הוא בהחלט
+ בכיוון(.
+ מפאת הקושי לאזן הן את העמידה בזמן המחזור של הסימולציה ובמקביל לשמר איכות
+ עקיבה סבירה של פתרונות הבקר, לא הצלחנו לכוון את הבקר לכיוון טוב יותר וזהו
+ הכוונון המיטבי מבחינתנו.
+\end_layout
+
+\begin_layout Standard
+מבחינת שגיאות הבקרה התקבלו הביצועים הבאים:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename iLQR_performance1.png
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+כפי שניתן לראות, בקרת ה-kcarT ssorC נסחפת עם הזמן.
+ למרות ניסיונות רבים למצוא היפר-פרמטרים טובים יותר - זהו הכוונון הטוב ביותר
+ שהצלחנו לייצב אשר מאפשר הן עמידה בזמן המחזור והן התכנסות מסלולים המאפשרת
+ לרכב להשלים הקפה שלמה בצורה תקינה.
+\end_layout
+
+\begin_layout Section*
+\begin_inset Newpage newpage
+\end_inset
+
+שאלה
+\family roman
+\series bold
+\shape up
+\size larger
+\emph off
+\bar no
+\strikeout off
+\xout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\numeric on
+\bar default
+\strikeout default
+\xout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+4
+\end_layout
+
+\begin_layout Standard
+בבקר האופטימלי שילבנו רכיב 
+\begin_inset Formula $PID$
+\end_inset
+
+ שיבקר על המהירות )תוך הסרת המגבלה המלאכותית על המהירות( ורכיב 
+\begin_inset Formula $PP$
+\end_inset
+
+ שיבקר על הזווית.
+\end_layout
+
+\begin_layout Standard
+בנוסף האצנו את המסלול ע
+\begin_inset Quotes erd
+\end_inset
+
+י הוספת תנאי בפונקציה 
+\begin_inset Formula $\text{get\_ref\_pose}$
+\end_inset
+
+ כך שאם אנחנו משתמשים בבקר אופטימלי - מקדמים את 
+\begin_inset Formula $self.waypoint\,index$
+\end_inset
+
+ בצעד נוסף.
+\end_layout
+
+\begin_layout Standard
+הדבר יצר אוסצילציות חזקות מאוד כאשר השתמשנו ב
+\begin_inset Formula $lookahead=3$
+\end_inset
+
+, מה שגרם לנו לבצע סדרת ניסויים מחודשת עם ערכי 
+\begin_inset Formula $lookahead$
+\end_inset
+
+ שונים.
+ התוצאות להלן:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="5">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Lookahead Distance
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Lap Time [sec]
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Total 
+\begin_inset Formula $e_{at}\left[m\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Total 
+\begin_inset Formula $e_{ct}\left[m\right]$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Notes
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+42
+\numeric off
+\lang english
+.163
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+12
+\numeric off
+\lang english
+.17
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+4.93
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+Not Tested
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+42.162
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+9.08
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+3
+\numeric off
+\lang english
+.05
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+42
+\numeric off
+\lang english
+.166
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+7
+\numeric off
+\lang english
+.65
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+2.71
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+42.17
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+7.05
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+3.21
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+42
+\numeric off
+\lang english
+.16
+\numeric on
+\lang hebrew
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\numeric on
+7
+\numeric off
+\lang english
+.31
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\lang english
+12.87
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+נשים לב 
+\end_layout
+
+\begin_layout Standard
+זיהינו שבאופן עקבי לאחר פניות הרכב עוצר לרגע ו
+\begin_inset Quotes erd
+\end_inset
+
+מתאושש
+\begin_inset Quotes erd
+\end_inset
+
+.
+ על מנת לטפל בסוגיה שיחקנו עם ערכי ה
+\begin_inset Formula $PID$
+\end_inset
+
+, ובפרט הגדלנו את האינטגרטור על מנת לגרום לרכב להפסיק לעצור.
+ הרכב לא מפסיק להאט, אבל כתופעת לוואי קיבלנו שיפור בביצועי הבקר.
+\end_layout
+
+\begin_layout Standard
+להלן ביצועי הבקר הסופי:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename C:/MobileRobots/MR/046213_Labs/Optimal_PID_175_04_125_PP_4.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename C:/MobileRobots/MR/046213_Labs/Optimal_PID_175_04_125_PP_4_track.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+\begin_inset Newpage newpage
+\end_inset
+
+נספח - ריכוז עדכוני קוד
+\end_layout
+
+\begin_layout Standard
+להלן המקומות בהם עודכן הקוד 
+\series bold
+מחוץ 
+\series default
+לחלקים בהם התבקשנו להכניס קוד משלנו:
+\end_layout
+
+\end_body
+\end_document
