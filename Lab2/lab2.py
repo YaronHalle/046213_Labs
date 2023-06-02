@@ -74,6 +74,29 @@ def collision_check(map_arr, map_hight, map_width, map_resolution, origin_x, ori
 
 
 def sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y, n_points_to_sample=2000, dim=2):
+    # Extracting all FALSE indices locations (FALSE=free space)
+    free_space_ind = np.argwhere(map_arr == False)
+
+    # Computing the enclosing rectangle boundary indices
+    up_ind = max(free_space_ind[:, 0])
+    down_ind = min(free_space_ind[:, 0])
+    right_ind = max(free_space_ind[:, 1])
+    left_ind = min(free_space_ind[:, 1])
+
+    # Converting the boundary indices to real coordinates
+    upright_x, upright_y = map2pose_coordinates(map_resolution, origin_x, origin_y, right_ind, up_ind)
+    downleft_x, downleft_y = map2pose_coordinates(map_resolution, origin_x, origin_y, left_ind, down_ind)
+
+    # Drawing the random samples
+    samples = np.random.rand(n_points_to_sample, dim)
+
+    # Calibrating the samples to fit in the free space of the map
+    samples[:, 0] = downleft_x + (upright_x - downleft_x) * samples[:, 0]
+    samples[:, 1] = downleft_y + (upright_y - downleft_y) * samples[:, 1]
+
+    return samples
+
+    '''
     ####### your code goes here #######
     bbox_up = 0
     bbox_down = 0
@@ -114,7 +137,7 @@ def sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x
     print(f'bbox_left = {bbox_left}')
     ##################################
     #raise NotImplementedError
-
+    '''
 
 def create_prm_traj(map_file):
     prm_traj = []
@@ -126,7 +149,7 @@ def create_prm_traj(map_file):
 
     ####### your code goes here #######
     # TODO: load the map and metadata
-    sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y)
+    samples = sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y)
     # TODO: create PRM graph
     
     # TODO: create PRM trajectory (x,y) saving it to prm_traj list
