@@ -160,21 +160,52 @@ def create_prm_traj(map_file):
     np.save(os.path.join(pathlib.Path(__file__).parent.resolve().parent.resolve(),'resource/prm_traj.npy'), prm_traj)
 
 
-def sample_conrol_inputs(number_of_samples=10):
-    ####### your code goes here #######
-    
-    ##################################
-    raise NotImplementedError
+def sample_control_inputs(number_of_samples=10):
+    '''
+    Helper function for sampling controls according to predefined control cut-off limits
+    :param number_of_samples: Number of control samples to be drawn
+    :return: Matrix number_of_samplesX2, first column is velocity and second column is the steering angle command
+    '''
+    # Predefined control cut-off limits
+    velocity_min = -0.5 # [m/s]
+    velocity_max = 0.5 # [m/s]
+    steering_angle_min = -0.3 # [rad]
+    steering_angle_max = 0.3 # [rad]
 
+    # Drawing random samples.
+    control_samples = np.random.rand(number_of_samples, 2)
+
+    # Setting the velocity values
+    control_samples[:, 0] = velocity_min + (velocity_max - velocity_min) * control_samples[:, 0]
+    control_samples[:, 1] = steering_angle_min + (steering_angle_max - steering_angle_min) * control_samples[:, 1]
+
+    return control_samples
 
 def forward_simulation_of_kineamtic_model(x, y, theta, v, delta, dt=0.5):
-    ####### your code goes here #######
-    
-    
-    ##################################
-    raise NotImplementedError
-    return x_new, y_new, theta_new
+    '''
+    Helper function for computing the next X state vector of the non-linear Ackerman car model
+    using the current state and command vector.
+    Inputs:
+    @param x Current x state [m]
+    @param y Current y state [m]
+    @param theta Current theta state [m]
+    @param v Current velocity command [m/s]
+    @param delta Current Steering angle command [rad]
+    @param dt Integration time step [sec]
+    Outputs:
+    @param x_new Next state x
+    @param y_new Next state y
+    @param theta_new Next state theta
+    '''
+    velocity = v
+    steering_angle = delta
+    wheelbase = 0.3302
 
+    x_new = x + velocity * np.cos(theta) * dt
+    y_new = y + velocity * np.sin(theta) * dt
+    theta_new = theta + velocity / wheelbase * np.tan(steering_angle) * dt
+
+    return x_new, y_new, theta_new
 
 def create_kino_rrt_traj(map_file):
     kino_rrt_traj = []
@@ -195,6 +226,7 @@ def create_kino_rrt_traj(map_file):
 
 
 if __name__ == "__main__":
+    sample_control_inputs(number_of_samples=10)
     map_file = '../maps/levine.png'
     create_prm_traj(map_file)
     create_kino_rrt_traj(map_file)
