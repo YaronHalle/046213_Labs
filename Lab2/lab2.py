@@ -43,6 +43,10 @@ def map2pose_coordinates(map_resolution, origin_x, origin_y, x_map, y_map):
     return x, y
 
 def collision_check(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y, x, y, theta):
+    '''
+    Collision check function for a given robot's configuration.
+    The functions returns TRUE if collision occurred and FALSE otherwise.
+    '''
     ####### your code goes here #######
     # TODO: transform configuration to workspace bounding box
     
@@ -52,26 +56,24 @@ def collision_check(map_arr, map_hight, map_width, map_resolution, origin_x, ori
     
     ##################################
 
-    # Compute robot's bounding box corners in respect tot map coordinates
-    robot_bb_height = 2
-    robot_bb_width = 2
+    # Compute the robot's bounding box corners in respect to map coordinates.
+    # We assume that 3 times the car's wheelbase bounds the robot's geometry in 2D.
+    wheelbase = 0.3302  # [meters
+    robot_bb_height = 3 * wheelbase  # [meters]
+    robot_bb_width = 3 * wheelbase  # [meters]
 
-    bb_ne_x = np.ceil(x + robot_bb_width/2)
-    bb_sw_x = np.floor(x - robot_bb_width / 2)
-    bb_ne_y = np.ceil(y + robot_bb_height / 2)
-    bb_sw_y = np.floor(y - robot_bb_height / 2)
+    # Computing robot's bounding box coordinates
+    bb_ne_x = int(np.ceil(x + robot_bb_width/2))
+    bb_ne_y = int(np.ceil(y + robot_bb_height / 2))
+    bb_sw_x = int(np.floor(x - robot_bb_width / 2))
+    bb_sw_y = int(np.floor(y - robot_bb_height / 2))
 
-    ## x = np.array(linspace([bb_ne_x]:[bb_sw_x]))
-
-    # Computing bounding box in indices
-    y_map, x_map = pose2map_coordinates(map_resolution, origin_x, origin_y, x, y)
+    # Transforming bounding box's coordinates to integer map indices
+    bb_ne_row, bb_ne_col = pose2map_coordinates(map_resolution, origin_x, origin_y, bb_ne_x, bb_ne_y)
+    bb_sw_row, bb_sw_col = pose2map_coordinates(map_resolution, origin_x, origin_y, bb_sw_x, bb_sw_y)
 
     # Overlay the robot's bounding box on map and check for obstacles existence
-    map_arr[y_map, x_map].any()
-
-
-    raise NotImplementedError
-
+    return map_arr[bb_sw_row:bb_ne_row + 1, bb_sw_col:bb_ne_col + 1].any()
 
 def sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y, n_points_to_sample=2000, dim=2):
     # Extracting all FALSE indices locations (FALSE=free space)
@@ -95,49 +97,6 @@ def sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x
     samples[:, 1] = downleft_y + (upright_y - downleft_y) * samples[:, 1]
 
     return samples
-
-    '''
-    ####### your code goes here #######
-    bbox_up = 0
-    bbox_down = 0
-    bbox_left = 0
-    bbox_right = 0  # bounding box coordinates
-
-    for i in range(map_hight):
-        for j in range(map_width):
-            if (map_arr[i][j] == False):
-                bbox_up = i
-                break
-        if (map_arr[i][j] == False):
-            break
-    print(f'bbox_up = {bbox_up}')
-    for i in range(map_hight-1, 0, -1):
-        for j in range(map_width):
-            if (map_arr[i][j] == False):
-                bbox_down = i
-                break
-        if (map_arr[i][j] == False):
-            break
-    print(f'bbox_down = {bbox_down}')
-    for j in range(map_width-1, 0, -1):
-        for i in range(map_width):
-            if (map_arr[i][j] == False):
-                bbox_right = j
-                break
-        if (map_arr[i][j] == False):
-            break
-    print(f'bbox_right = {bbox_right}')
-    for j in range(map_width):
-        for i in range(map_width):
-            if (map_arr[i][j] == False):
-                bbox_left = j
-                break
-        if (map_arr[i][j] == False):
-            break
-    print(f'bbox_left = {bbox_left}')
-    ##################################
-    #raise NotImplementedError
-    '''
 
 def create_prm_traj(map_file):
     prm_traj = []
@@ -226,7 +185,6 @@ def create_kino_rrt_traj(map_file):
 
 
 if __name__ == "__main__":
-    sample_control_inputs(number_of_samples=10)
     map_file = '../maps/levine.png'
     create_prm_traj(map_file)
     create_kino_rrt_traj(map_file)
