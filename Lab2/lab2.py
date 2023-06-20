@@ -1,6 +1,7 @@
 import sys
 import operator
 import numpy as np
+import scipy.spatial
 from scipy.spatial import KDTree
 from scipy import interpolate
 from PIL import Image
@@ -170,30 +171,97 @@ def sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x
 
 def create_prm_traj(map_file):
     prm_traj = []
-    mid_points = np.array([[0, 0, 0],
-                           [9.5, 4.5, np.pi / 2],
-                           [0, 8.5, np.pi],
-                           [-13.5, 4.5, -np.pi / 2]])
-
-    # Loading the map and metadata
+    mid_points = np.array([[0, 0],
+                           [9.5, 4.5],
+                           [0, 8.5],
+                           [-13.5, 4.5]])
     map_arr, map_hight, map_width, map_resolution, origin_x, origin_y = load_map_and_metadata(map_file)
 
-    # Sampling random [x,y] samples
-    samples = sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y,
-                                   n_points_to_sample=2000, dim=2)
+    ####### your code goes here #######
 
-    # Keeping only obstalces free samples
+    # Create node list & collision check them
+    samples = sample_configuration(map_arr, map_hight, map_width, map_resolution, origin_x, origin_y, 4000)
+    test_x, test_y = map2pose_coordinates(map_resolution, origin_x, origin_y, 717, 1300)
     is_colliding = np.array([collision_check(map_arr, map_hight, map_width, map_resolution,
                                              origin_x, origin_y, sample[0], sample[1], 0) for sample in samples])
     free_space_samples = np.argwhere(is_colliding == False).flatten()
+
     samples = samples[free_space_samples]
-    # TODO: create PRM graph
+
+
+    # Create edge list & collision check (knn & rnn, remove the least useful one)
+    sample_tree = scipy.spatial.KDTree(samples)
+    k = 8  # k-nn parameter
+    r = 3  # r-nn parameter
+
+    knn_edges = []
+    rnn_edges = []
+    for idx, node in enumerate(samples):
+        d , knn_edge_sampling = sample_tree.query(x=node, k=k)  # returns list of k-nearest neighbours indexes
+        rnn_edge_sampling = sample_tree.query_ball_point(x=node, r=r)
+        for target_node_idx in knn_edge_sampling:  # for each node in the sampled list
+            if target_node_idx == idx: continue # KDTree.query return will return same node as 1NN - disregard it.
+            line = np.linspace(node, samples[target_node_idx], 10)  # connect starting node and original node in a line
+            edge = (idx, target_node_idx)  # create the edge
+            anti_edge = (target_node_idx, idx)  # create the reverse edge
+            is_edge_colliding = np.array([collision_check(map_arr, map_hight, map_width, map_resolution,
+                                             origin_x, origin_y, point[0], point[1], 0) for point in line]).any()  # check if any point in the line collides
+            if(is_edge_colliding == False):
+                knn_edges.append(edge)
+                knn_edges.append(anti_edge)
+
+
+        for target_node_idx in rnn_edge_sampling:  # same as knn - but for the rnn sampling
+            line = np.linspace(node, samples[target_node_idx], 10)
+            edge = (idx, target_node_idx)
+            anti_edge = (target_node_idx, idx)
+            is_edge_colliding = np.array([collision_check(map_arr, map_hight, map_width, map_resolution,
+                                                          origin_x, origin_y, point[0], point[1], 0) for point in line]).any()  # check if any point in the line collides
+            if (is_edge_colliding == False):
+                rnn_edges.append(edge)
+                rnn_edges.append(anti_edge)
+
+    # Calculate costs for each edge
+    knn_costs = {}
+    for edge in knn_edges:
+        edge_cost = np.linalg.norm(samples[edge[0]] - samples[edge[1]], ord = 2)
+        knn_costs[edge[0], edge[1]] = edge_cost
+
+    rnn_costs = {}
+    for edge in rnn_edges:
+        edge_cost = np.linalg.norm(samples[edge[0]] - samples[edge[1]], ord = 2)
+        rnn_costs[edge[0], edge[1]] = edge_cost
+
+
+    # Populate PRM graph with the previously calculated parameters
+    knn_prm_graph = {'nodes': samples,
+             'edges': knn_edges,
+             'costs': knn_costs}
+
+    rnn_prm_graph = {'nodes': samples,
+                     'edges': rnn_edges,
+                     'costs': rnn_costs}
+
+    knn_astar = A_star(knn_prm_graph)
+    rnn_astar = A_star(rnn_prm_graph)
+
     # TODO: create PRM trajectory (x,y) saving it to prm_traj list
 
-    ##################################
+    rnn_astar_traj = []
+    knn_astar_traj = []
 
-    prm_traj = np.concatenate(prm_traj, axis=0)
-    np.save(os.path.join(pathlib.Path(__file__).parent.resolve().parent.resolve(), 'resource/prm_traj.npy'), prm_traj)
+    for i in range(4):
+        rnn_astar_traj = rnn_astar_traj + rnn_astar.a_star(mid_points[i], mid_points[(i+1)%4])
+        knn_astar_traj = knn_astar_traj + knn_astar.a_star(mid_points[i], mid_points[(i+1)%4])
+
+    if (len(rnn_astar_traj) < len(knn_astar_traj)):  # choose the shorter option of the two
+        prm_traj = np.array(rnn_astar_traj)
+    else:
+        prm_traj = np.array(knn_astar_traj)
+
+    plot_configs(None,map_resolution,origin_x,origin_y,prm_traj[0],prm_traj[-1],prm_traj)
+
+    np.save(os.path.join(pathlib.Path(__file__).parent.resolve().parent.resolve(), 'resource/prm_traj.npy'), np.array(prm_traj))
 
 
 def sample_control_inputs():
