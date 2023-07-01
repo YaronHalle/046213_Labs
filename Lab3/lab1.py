@@ -54,7 +54,7 @@ class Lab1(Node):
         self.ref_traj # prevent unused variable warning
         
         # create a timer to publish the control input every 20ms
-        self.dt = 5  # 0.5
+        self.dt = 0.1
         self.get_logger().info("Creating Timer")
         self.timer = self.create_timer(self.dt, self.timer_callback)
         self.timer # prevent unused variable warning
@@ -81,9 +81,12 @@ class Lab1(Node):
         self.cross_track_error_integral = 0
         self.waypoint_index = 0
         self.last_steering_command = 0
+        self.last_speed_command = 0
         self.theta_ref = 0
         self.velocity = 0
-        
+        self.last_time = self.get_clock().now().nanoseconds * 1e-9
+        self.new_ekf_data = False
+        self.last_pose = np.zeros(3)
         self.moved = False
     
     def get_ref_pos(self):
@@ -155,9 +158,24 @@ class Lab1(Node):
         _, _, yaw = euler.quat2euler([q.w, q.x, q.y, q.z]) 
         
         self.pose = np.array([x, y, yaw])
+        self.new_ekf_data = True
+
+    def forward_simulation_of_kineamtic_model(self, old_pose, dt):
+        x = old_pose[0]
+        y = old_pose[1]
+        theta = old_pose[2]
+        v = self.last_speed_command
+        delta = self.last_steering_command
+
+        d = 0.3302
+        x_new = x + v * np.cos(theta) * dt
+        y_new = y + v * np.sin(theta) * dt
+        theta_new = theta + (v / d) * np.tan(delta) * dt
+        new_pose = np.array([x_new, y_new, theta_new])
+        return new_pose
         
     def timer_callback(self):
-        self.log_accumulated_error()
+
         
         # compute the control input
         if self.controller == "pid_unicycle":
@@ -169,7 +187,16 @@ class Lab1(Node):
         elif self.controller == "ilqr":
             u = self.ilqr_control(self.pose)
         elif self.controller == "optimal":
-            u = self.optimal_control(self.pose)
+            if self.new_ekf_data:
+                print('***** NEW EKF MEASUREMENT *****')
+                pose = np.copy(self.pose)
+                self.new_ekf_data = False
+                self.log_accumulated_error()
+            else:
+                pose = self.forward_simulation_of_kineamtic_model(self.last_pose, self.dt)
+
+            self.last_pose = np.copy(pose)
+            u = self.optimal_control(pose)
         else:
             self.get_logger().info("Unknown controller")
             return
@@ -184,6 +211,7 @@ class Lab1(Node):
 
         # Update log
         self.last_steering_command = u[0]
+        self.last_speed_command = u[1]
         self.log['cross_track_error'].append(self.current_cross_track_error)
         self.log['along_track_error'].append(self.current_along_track_error)
         self.log['steering_command'].append(u[0])
@@ -227,8 +255,13 @@ class Lab1(Node):
         raise NotImplementedError
         
     def optimal_control(self, pose):
+
+        current_time = self.get_clock().now().nanoseconds * 1e-9
+        delta_time = current_time - self.last_time
+        self.last_time = current_time
+
         theta_measured = pose[2]
-        theta_next = theta_measured + self.last_steering_command * self.dt
+        theta_next = theta_measured + self.last_steering_command * delta_time
         theta_error = theta_next - self.theta_ref
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -261,9 +294,17 @@ class Lab1(Node):
 
         steering_angle = np.arctan((2 * d * np.sin(alpha)) / L)
 
+        # TODO debug printing
+        print(f'DeltaTime = {delta_time}')
+        print(f'Current along track error = {self.current_along_track_error}')
+        print(f'Current theta error = {theta_error}')
+        print(f'Along track error integral = {self.along_track_error_integral}')
+        print(f'Alpha (waypoint_angle - heading_angle) = {alpha}')
+        print(f'Xref,Yref = ({x_ref},{y_ref})')
+
         # Enforcing commands cut-off
-        max_speed = 0.1
-        max_angle = 0.3
+        max_speed = 0.1 #0.1
+        max_angle = 0.3 # 0.3
 
         if speed > max_speed:
             speed = max_speed
@@ -274,6 +315,7 @@ class Lab1(Node):
         elif steering_angle < -max_angle:
             steering_angle = -max_angle
         return np.array([steering_angle, speed])
+
 
 
 class EndLap(Exception):
