@@ -16,10 +16,21 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from tf2_ros import TransformBroadcaster
 
 from ament_index_python.packages import get_package_share_directory
-
 import gym
 import numpy as np
 from transforms3d import euler
+
+
+class FilterData(object):
+    '''
+    Helper class for storing previous EKF filter status
+    '''
+    def __init__(self, time, speed_cmd, steering_cmd, pose, cov):
+        self.time = time
+        self.speed_cmd = speed_cmd
+        self.steering_cmd = steering_cmd
+        self.pose = pose
+        self.cov = cov
 
 # this node should get the current pose from odom and get a reference trajectory from a yaml file
 # and publish ackermann drive commands to the car based on one of 4 controllers selected with a parameter
@@ -54,24 +65,12 @@ class Lab1(Node):
         self.ref_traj # prevent unused variable warning
         
         # create a timer to publish the control input every 20ms
-        self.dt = 0.1
+        self.dt = 0.5
         self.get_logger().info("Creating Timer")
         self.timer = self.create_timer(self.dt, self.timer_callback)
         self.timer # prevent unused variable warning
         
         self.pose = np.zeros(3)
-
-        # Creating a dictionary log for later plotting the performance
-        self.log = {}
-        self.log['cross_track_error'] = []
-        self.log['along_track_error'] = []
-        self.log['steering_command'] = []
-        self.log['speed_command'] = []
-        self.log['robot_x'] = []
-        self.log['robot_y'] = []
-        self.log['robot_theta'] = []
-        self.log['traj_x'] = []
-        self.log['traj_y'] = []
 
         self.current_cross_track_error = 0
         self.current_along_track_error = 0
@@ -86,9 +85,16 @@ class Lab1(Node):
         self.velocity = 0
         self.last_time = self.get_clock().now().nanoseconds * 1e-9
         self.new_ekf_data = False
-        self.last_pose = np.zeros(3)
+        self.last_ekf_pose = np.zeros(3)
+        self.last_ekf_covariance = self.compute_R_matrix()
+        self.measured_pose = np.zeros(3)
+        self.measured_covariance = np.zeros((3,3))
+        self.measurement_time = 0
         self.moved = False
-    
+        self.is_odom_clock_synced = False
+        self.odom_to_ekf_time_shift = 0
+        self.filter_hist = []
+
     def get_ref_pos(self):
         # get the next waypoint in the reference trajectory based on the current time
         waypoint = self.ref_traj[self.waypoint_index % len(self.ref_traj)]
@@ -151,32 +157,157 @@ class Lab1(Node):
             raise EndLap
     
     def odom_callback(self, msg):
+        # Reading measurement time
+        self.measurement_time = msg.pose.covariance[2]
+
         # get the current pose
         x = msg.pose.pose.position.x
         y = msg.pose.pose.position.y
         q = msg.pose.pose.orientation
-        _, _, yaw = euler.quat2euler([q.w, q.x, q.y, q.z]) 
-        
+        _, _, yaw = euler.quat2euler([q.w, q.x, q.y, q.z])
+
         self.pose = np.array([x, y, yaw])
+        self.measured_pose = np.copy(self.pose)
+        self.measured_covariance[0, 0] = msg.pose.covariance[0]
+        self.measured_covariance[0, 1] = msg.pose.covariance[1]
+        self.measured_covariance[0, 2] = msg.pose.covariance[5]
+        self.measured_covariance[1, 0] = msg.pose.covariance[6]
+        self.measured_covariance[1, 1] = msg.pose.covariance[7]
+        self.measured_covariance[1, 2] = msg.pose.covariance[11]
+        self.measured_covariance[2, 0] = msg.pose.covariance[30]
+        self.measured_covariance[2, 1] = msg.pose.covariance[31]
+        self.measured_covariance[2, 2] = msg.pose.covariance[35]
         self.new_ekf_data = True
 
-    def forward_simulation_of_kineamtic_model(self, old_pose, dt):
-        x = old_pose[0]
-        y = old_pose[1]
-        theta = old_pose[2]
-        v = self.last_speed_command
-        delta = self.last_steering_command
-
+    def forward_simulation_of_kineamtic_model(self, x, y, theta, v, delta, dt):
         d = 0.3302
         x_new = x + v * np.cos(theta) * dt
         y_new = y + v * np.sin(theta) * dt
         theta_new = theta + (v / d) * np.tan(delta) * dt
-        new_pose = np.array([x_new, y_new, theta_new])
-        return new_pose
-        
-    def timer_callback(self):
+        return np.array([x_new, y_new, theta_new])
 
-        
+    def compute_G_matrix(self, velocity, theta):
+        G = np.zeros((3, 3))
+        G[0, 2] = -velocity * np.sin(theta)
+        G[1, 2] =  velocity * np.cos(theta)
+        return G
+
+    def compute_R_matrix(self):
+        return np.diag((0.1, 0.1, 0.1))
+
+    def ekf_predict(self, delta_time):
+        Xprev = self.last_ekf_pose
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Matrices definitions
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        x = Xprev[0]
+        y = Xprev[1]
+        theta = Xprev[2]
+        velocity = self.last_speed_command
+        delta = self.last_steering_command
+
+        G = self.compute_G_matrix(velocity, theta)
+        R = self.compute_R_matrix()
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Prediction Step
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Xpredict = self.forward_simulation_of_kineamtic_model(x, y, theta, velocity, delta, delta_time)
+        Ppredict = G @ self.last_ekf_covariance @ G.T + R
+
+        return Xpredict, Ppredict
+
+    def ekf_predict_and_update(self, current_time, meas_time, measured_pose, measured_covariance):
+        # Scanning filter status for the last prediction step before measurement time
+        for i in range(len(self.filter_hist)):
+            if self.filter_hist[i].time > meas_time:
+                last_ekf_ind_before_meas = i-1
+                break
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Matrices definitions
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        time_prev = self.filter_hist[last_ekf_ind_before_meas].time
+        Xprev = self.filter_hist[last_ekf_ind_before_meas].pose
+        Pprev = self.filter_hist[last_ekf_ind_before_meas].cov
+        velocity = self.filter_hist[last_ekf_ind_before_meas].speed_cmd
+        delta = self.filter_hist[last_ekf_ind_before_meas].steering_cmd
+
+        x = Xprev[0]
+        y = Xprev[1]
+        theta = Xprev[2]
+
+        G = self.compute_G_matrix(velocity, theta)
+        H = np.eye(3)
+        R = self.compute_R_matrix()
+        z = measured_pose
+        Q = measured_covariance
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # First prediction step (from last predict before measurement -> measurement time)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        dt_before_measurement = meas_time - time_prev
+        Xpredict = self.forward_simulation_of_kineamtic_model(x, y, theta, velocity, delta, dt_before_measurement)
+        Ppredict = G @ Pprev @ G.T + R
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Computing the Kalman gain
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        K = Ppredict @ H.T @ np.linalg.pinv(H @ Ppredict @ H.T + Q)
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Update step in respect to the measurement time
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Xnext = Xpredict + K @ (z - Xpredict)
+        Pnext = (np.eye(3) - K @ H) @ Ppredict
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Second prediction step (from measurement time -> last ekf filter time)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        x = Xnext[0]
+        y = Xnext[1]
+        theta = Xnext[2]
+
+        # Predicting from measurement time to the following filter time
+        dt_after_measurement = self.filter_hist[last_ekf_ind_before_meas + 1].time - meas_time
+        Xpredict = self.forward_simulation_of_kineamtic_model(x, y, theta, velocity, delta, dt_after_measurement)
+        Ppredict = G @ Pnext @ G.T + R
+
+        # Predicting from the following filter time all the way until the last stored filter
+        for i in range(last_ekf_ind_before_meas + 1, len(self.filter_hist) - 1):
+            x = Xpredict[0]
+            y = Xpredict[1]
+            theta = Xpredict[2]
+            velocity = self.filter_hist[i].speed_cmd
+            delta = self.filter_hist[i].steering_cmd
+
+            # Predicting from measurement time to the following filter time
+            delta_time = self.filter_hist[i + 1].time - self.filter_hist[i].time
+            Xpredict = self.forward_simulation_of_kineamtic_model(x, y, theta, velocity, delta, delta_time)
+            G = self.compute_G_matrix(velocity, theta)
+            Ppredict = G @ Ppredict @ G.T + R
+
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Third prediction step (from last ekf filter time -> current time)
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        x = Xpredict[0]
+        y = Xpredict[1]
+        theta = Xpredict[2]
+        delta_time = current_time - self.last_time
+        velocity = self.last_speed_command
+        delta = self.last_steering_command
+        G = self.compute_G_matrix(velocity, theta)
+        Xpredict = self.forward_simulation_of_kineamtic_model(x, y, theta, velocity, delta, delta_time)
+        Ppredict = G @ Ppredict @ G.T + R
+
+        return Xpredict, Ppredict
+
+    def timer_callback(self):
+        # Updating time variables
+        current_time = self.get_clock().now().nanoseconds * 1e-9
+        delta_time = current_time - self.last_time
+
         # compute the control input
         if self.controller == "pid_unicycle":
             u = self.pid_unicycle_control(self.pose)
@@ -187,16 +318,22 @@ class Lab1(Node):
         elif self.controller == "ilqr":
             u = self.ilqr_control(self.pose)
         elif self.controller == "optimal":
-            if self.new_ekf_data:
-                print('***** NEW EKF MEASUREMENT *****')
-                pose = np.copy(self.pose)
+            if self.new_ekf_data and len(self.filter_hist) > 0:
+                # EKF Prediction and Update Steps
+                self.last_ekf_pose, self.last_ekf_covariance = \
+                    self.ekf_predict_and_update(current_time, self.measurement_time, self.measured_pose, self.measured_covariance)
                 self.new_ekf_data = False
-                self.log_accumulated_error()
             else:
-                pose = self.forward_simulation_of_kineamtic_model(self.last_pose, self.dt)
+                # EKF Prediction only step
+                self.last_ekf_pose, self.last_ekf_covariance = self.ekf_predict(delta_time)
 
-            self.last_pose = np.copy(pose)
-            u = self.optimal_control(pose)
+            u = self.optimal_control(self.last_ekf_pose)
+            self.log_accumulated_error()
+            self.last_time = current_time
+
+            # Adding current EKF status to history array
+            filter_status = FilterData(current_time, u[0], u[1], self.last_ekf_pose, self.last_ekf_covariance)
+            self.filter_hist.append(filter_status)
         else:
             self.get_logger().info("Unknown controller")
             return
@@ -209,23 +346,13 @@ class Lab1(Node):
         cmd.drive.speed = u[1]
         self.cmd_pub.publish(cmd)
 
-        # Update log
+        # Keeping record of the last commands
         self.last_steering_command = u[0]
         self.last_speed_command = u[1]
-        self.log['cross_track_error'].append(self.current_cross_track_error)
-        self.log['along_track_error'].append(self.current_along_track_error)
-        self.log['steering_command'].append(u[0])
-        self.log['speed_command'].append(u[1])
-        self.log['robot_x'].append(self.pose[0])
-        self.log['robot_y'].append(self.pose[1])
-        self.log['robot_theta'].append(self.pose[2])
-        self.log['traj_x'].append(self.ref_traj[self.waypoint_index % len(self.ref_traj)][0])
-        self.log['traj_y'].append(self.ref_traj[self.waypoint_index % len(self.ref_traj)][1])
 
     def pid_control(self, pose):
         #### YOUR CODE HERE ####
-        
-        
+
         # return np.array([steering_angle, speed])
         #### END OF YOUR CODE ####
         raise NotImplementedError
@@ -255,14 +382,7 @@ class Lab1(Node):
         raise NotImplementedError
         
     def optimal_control(self, pose):
-
-        current_time = self.get_clock().now().nanoseconds * 1e-9
-        delta_time = current_time - self.last_time
-        self.last_time = current_time
-
-        theta_measured = pose[2]
-        theta_next = theta_measured + self.last_steering_command * delta_time
-        theta_error = theta_next - self.theta_ref
+        theta_error = pose[2] - self.theta_ref
 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # Along-track PID control
@@ -274,10 +394,10 @@ class Lab1(Node):
                   K_at_d * self.velocity * np.cos(theta_error) +
                   K_at_i * self.along_track_error_integral)
 
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Pure Pursuit control
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        lookahead = 5  # adjustable hyperparameter, was 2
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # Cross-track Bang-Bang + Pure Pursuit control
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        lookahead = 7
         d = 0.3302  # wheelbase as defined in .xacro file
 
         lookahead_waypoint = self.ref_traj[(self.waypoint_index + lookahead) % len(self.ref_traj)]
@@ -294,38 +414,26 @@ class Lab1(Node):
 
         steering_angle = np.arctan((2 * d * np.sin(alpha)) / L)
 
-        # TODO debug printing
-        print(f'DeltaTime = {delta_time}')
-        print(f'Current along track error = {self.current_along_track_error}')
-        print(f'Current theta error = {theta_error}')
-        print(f'Along track error integral = {self.along_track_error_integral}')
-        print(f'Alpha (waypoint_angle - heading_angle) = {alpha}')
-        print(f'Xref,Yref = ({x_ref},{y_ref})')
-
         # Enforcing commands cut-off
-        max_speed = 0.1 #0.1
-        max_angle = 0.3 # 0.3
+        max_speed = 0.5  # [m/s]
+        max_angle = 0.2  # [rad]
 
         if speed > max_speed:
             speed = max_speed
         elif speed < -max_speed:
             speed = -max_speed
-        if steering_angle > max_angle:
+
+        # Steering angle is determined by a "BANG-BANG" policy
+        if steering_angle > 0:
             steering_angle = max_angle
-        elif steering_angle < -max_angle:
+        elif steering_angle < 0:
             steering_angle = -max_angle
+
         return np.array([steering_angle, speed])
-
-
 
 class EndLap(Exception):
     # this exception is raised when the car crosses the finish line
     pass
-
-
-def export_log_to_json(log):
-    with open("log.json", "w") as write_file:
-        json.dump(log, write_file)
 
 def main(args=None):
     rclpy.init()
@@ -350,16 +458,9 @@ def main(args=None):
         print("Along Track Error: " + str(lab1.along_track_accumulated_error))
         print("Lap Time: " + str(tock - tick))
 
-        # Logging the final accumulated errors
-        lab1.log['acc_cross_track_error'] = lab1.cross_track_accumulated_error
-        lab1.log['acc_along_track_error'] = lab1.along_track_accumulated_error
-        lab1.log['lap_time'] = tock - tick
-        export_log_to_json(lab1.log)
-
     lab1.destroy_node()
     rclpy.shutdown()
-    
-    
+
 if __name__ == '__main__':
     main(sys.argv)
     

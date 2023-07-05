@@ -127,12 +127,6 @@ class Lab3(Node):
         self.pose = np.zeros(3)
         self.P = np.eye(3)*0.1
 
-        self.is_first = True
-        self.est_velocity_cmd = 0
-        self.est_steering_angle_cmd = 0
-        self.last_measrued_pose = np.zeros(3)
-        self.last_time = self.get_clock().now().nanoseconds * 1e-9
-        
     def scan_callback(self, msg):
         # if self.prev_scan != None and self.curr_scan != None and self.prev_scan.ranges != self.curr_scan.ranges:
         #     print("new scan, who dis?")
@@ -221,119 +215,18 @@ class Lab3(Node):
         valid_idxs = np.where((map_p_xs >= 0) & (map_p_xs < self.map_width) & (map_p_ys >= 0) & (map_p_ys < self.map_hight))
         return np.sum(self.map_arr[map_p_ys[valid_idxs], map_p_xs[valid_idxs]])
 
-    def compute_G_matrix(self, velocity, theta):
-        G = np.zeros((3, 3))
-        G[0, 2] = -velocity * np.sin(theta)
-        G[1, 2] =  velocity * np.cos(theta)
-        return G
-
-    def compute_R_matrix(self):
-        return np.diag((5, 5, 1))
-
-    def estimate_commands(self, measured_pose, dt):
-        '''
-        Helper function for retrieving the velocity and steering angle commands out of the measured pose.
-        :param measured_pose: Currently measured 3-element vector of the pose measurement [x,y,theta]
-        :return: The function doesn't return anything, just updates the two class members: self.est_velocity_cmd
-        and self.est_steering_angle_cmd
-        '''
-        # Defining the car's wheelbase
-        d = 0.3302
-
-        # Computing the estimated velocity
-        delta_x = measured_pose[0] - self.last_measrued_pose[0]
-        delta_y = measured_pose[1] - self.last_measrued_pose[1]
-        self.est_velocity_cmd = np.sqrt(delta_x ** 2 + delta_y ** 2) / dt
-
-        # Computing the estimated steering angle using differential flatness delta=tan-1(d*theta_dot/v)
-        theta_dot = (measured_pose[2] - self.last_measrued_pose[2]) / dt
-
-        # Avoiding dividing by zero
-        if abs(self.est_velocity_cmd) > 1e-3:
-            self.est_steering_angle_cmd = np.arctan(d * theta_dot / self.est_velocity_cmd)
-        else:
-            self.est_steering_angle_cmd = 0
-
-        # Storing the last measured pose for next cycle
-        self.last_measrued_pose = np.copy(measured_pose)
-
     def timer_callback(self):
+        # Storing the current measurement time before invoking the lengthy odometry scan
+        current_time = self.get_clock().now().nanoseconds * 1e-9
+
+        # Performing odometry
         self._scan_to_odom(self.curr_scan)
         measured_pose = self.laser_pose
         measured_covariance = self.laser_covariance
 
-        ########## Begin of EKF ##########
-        # Counting the actual dt since last EKF invocation
-        current_time = self.get_clock().now().nanoseconds * 1e-9
-        delta_time = current_time - self.last_time
-        self.last_time = current_time
+        self.pose = measured_pose
+        self.P = measured_covariance
 
-        # Setting x(t-1): On first iteration taking the direct measurement,
-        # else using EKF's previous step estimation.
-        if self.is_first:
-            self.is_first = False
-            Xprev = measured_pose
-            self.last_measrued_pose = np.copy(measured_pose)
-        else:
-            Xprev = self.pose
-
-        # Updating the commands estimation
-        self.est_velocity_cmd = self.cmd[0]
-        self.est_steering_angle_cmd = self.cmd[1]
-        # self.estimate_commands(measured_pose, delta_time)
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Matrices definitions
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        x = Xprev[0]
-        y = Xprev[1]
-        theta = Xprev[2]
-        velocity = self.est_velocity_cmd
-        delta = self.est_steering_angle_cmd
-
-        G = self.compute_G_matrix(velocity, theta)
-        H = np.eye(3)
-        R = self.compute_R_matrix()
-        z = measured_pose
-        Q = measured_covariance
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Prediction Step
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        Xpredict = forward_simulation_of_kineamtic_model(x, y, theta, velocity, delta, delta_time)
-        Ppredict = G @ self.P @ G.T + R
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Computing the Kalman gain
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        K = Ppredict @ H.T @ np.linalg.pinv(H @ Ppredict @ H.T + Q)
-
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        # Update step
-        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        Xnext = Xpredict + K @ (z - Xprev)  # h = Xprev since we have direct measurement of all states variables
-        Pnext = (np.eye(3) - K @ H) @ Ppredict
-
-        # TODO remove debugging
-        Xnext = measured_pose
-        Pnext = measured_covariance
-
-        pose = Xnext
-        covariance = Pnext
-
-        # Debug printing
-        print('------------------------------------------------------------------------------------------------------')
-        print(f'EKF DeltaTime = {delta_time}')
-        print(f'Laser: X=({round(measured_pose[0], 2)},{round(measured_pose[1], 2)},{round(measured_pose[2], 2)})\nP={measured_covariance}')
-        print(f'CMDs: ({round(self.est_velocity_cmd, 2)},{round(self.est_steering_angle_cmd, 2)})')
-        print(f'Xpredict: X=({round(Xpredict[0], 2)},{round(Xpredict[1], 2)},{round(Xpredict[2], 2)})')
-        print(f'Ppredict: \n{Ppredict}')
-        print(f'EKF: X=({round(Xnext[0],2)},{round(Xnext[1],2)},{round(Xnext[2],2)})\nP=({Pnext})')
-        ########## End of EKF ##########
-
-        self.pose = pose
-        self.P = covariance
-        
         # publish the estimated pose on the /ekf_pose topic
         msg = PoseWithCovarianceStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
@@ -341,19 +234,21 @@ class Lab3(Node):
         msg.pose.pose.position.x = self.pose[0]
         msg.pose.pose.position.y = self.pose[1]
         q = euler.euler2quat(0, 0, self.pose[2])
-        msg.pose.pose.orientation = Quaternion(x=q[0], y=q[1], z=q[2], w=q[3])
-        msg.pose.covariance[0] = self.P[0,0]
-        msg.pose.covariance[1] = self.P[0,1]
-        msg.pose.covariance[5] = self.P[0,2]
-        msg.pose.covariance[6] = self.P[1,0]
-        msg.pose.covariance[7] = self.P[1,1]
-        msg.pose.covariance[11] = self.P[1,2]
-        msg.pose.covariance[30] = self.P[2,0]
-        msg.pose.covariance[31] = self.P[2,1]
-        msg.pose.covariance[35] = self.P[2,2]
-        
+        msg.pose.pose.orientation = Quaternion(x=q[1], y=q[2], z=q[3], w=q[0])
+        msg.pose.covariance[0] = self.P[0, 0]
+        msg.pose.covariance[1] = self.P[0, 1]
+        msg.pose.covariance[5] = self.P[0, 2]
+        msg.pose.covariance[6] = self.P[1, 0]
+        msg.pose.covariance[7] = self.P[1, 1]
+        msg.pose.covariance[11] = self.P[1, 2]
+        msg.pose.covariance[30] = self.P[2, 0]
+        msg.pose.covariance[31] = self.P[2, 1]
+        msg.pose.covariance[35] = self.P[2, 2]
+
+        # Using the unused covariance[2] for storing the current_time
+        msg.pose.covariance[2] = current_time
+
         self.ekf_pose_pub.publish(msg)
-        
 
 def main(args=None):
     rclpy.init()
